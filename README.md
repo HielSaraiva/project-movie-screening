@@ -44,7 +44,7 @@ project-movie-screening/
 
 ## Tecnologias Utilizadas
 
-- **Java 23.0.2**: Linguagem de programação principal
+- **Java 21 LTS**: Linguagem de programação principal
 - **JavaFX 21**: Framework para interface gráfica
 - **Maven**: Gerenciamento de dependências e build
 - **FXML**: Descrição de interface de usuário
@@ -61,15 +61,15 @@ project-movie-screening/
 
 ### Requisitos
 
-- JDK 23.0.2 ou superior
+- JDK 21 ou superior
 - Apache Maven 3.6 ou superior
 - Configuração adequada das variáveis de ambiente JAVA_HOME e PATH
 
 ### macOS
 
-1. **Instale o JDK 23**
+1. **Instale o JDK 21**
    ```zsh
-   brew install openjdk@23
+   brew install openjdk@21
    ```
 
 2. **Instale o Maven**
@@ -95,7 +95,7 @@ project-movie-screening/
 
 ### Windows
 
-1. **Instale o JDK 23**
+1. **Instale o JDK 21**
    - Baixe o instalador do [site oficial da Oracle](https://www.oracle.com/java/technologies/javase/jdk23-archive-downloads.html)
    - Execute o instalador e siga as instruções
    - Configure a variável de ambiente JAVA_HOME
