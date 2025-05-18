@@ -79,7 +79,7 @@ project-movie-screening/
 
 3. **Clone o repositório**
    ```zsh
-   git clone [URL_DO_REPOSITÓRIO]
+   git clone https://github.com/HielSaraiva/project-movie-screening.git
    cd project-movie-screening
    ```
 
@@ -107,7 +107,7 @@ project-movie-screening/
 
 3. **Clone o repositório**
    ```cmd
-   git clone [URL_DO_REPOSITÓRIO]
+   git clone https://github.com/HielSaraiva/project-movie-screening.git
    cd project-movie-screening
    ```
 
