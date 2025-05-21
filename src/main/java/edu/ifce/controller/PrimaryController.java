@@ -1,11 +1,16 @@
 package edu.ifce.controller;
 
+import java.util.ArrayList;
+import java.util.List;
+
 import edu.ifce.thread.CinemaThread;
 import javafx.application.Platform;
 import javafx.fxml.FXML;
 import javafx.scene.control.Button;
+import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.layout.GridPane;
 
 public class PrimaryController {
 
@@ -23,11 +28,14 @@ public class PrimaryController {
     private Button adicionarFanBtn;
     @FXML
     private TextArea logArea;
+    @FXML
+    private Label statusDemonstradorLabel;
+    @FXML
+    private GridPane fansStatusGrid;
 
     private boolean demonstradorIniciado = false;
-
-    private boolean autoScroll = true;
-    private double lastScrollPosition = 0;
+    private final List<CinemaThread.Fan> fans = new ArrayList<>();
+    private CinemaThread.Demonstrador demonstrador;
 
     @FXML
     private void iniciarDemonstrador() {
@@ -36,12 +44,14 @@ public class PrimaryController {
             int te = Integer.parseInt(tempoExibicaoField.getText());
             CinemaThread.configurar(n, te);
             CinemaThread.Demonstrador demonstrador = new CinemaThread.Demonstrador();
+            demonstrador.setOnStatusChange(status -> atualizarStatusDemonstrador(status));
             demonstrador.setLogger(this::log);
             demonstrador.start();
             demonstradorIniciado = true;
             adicionarFanBtn.setDisable(false);
             log("Demonstrador iniciado com capacidade " + n + " e tempo de exibição " + te + "s.");
             iniciarDemoBtn.setDisable(true);
+            atualizarStatusDemonstrador(demonstrador.getStatus());
         } catch (Exception e) {
             log("Erro ao iniciar demonstrador: " + e.getMessage());
         }
@@ -55,12 +65,72 @@ public class PrimaryController {
             String id = fanIdField.getText();
             int tl = Integer.parseInt(fanTempoLancheField.getText());
             CinemaThread.Fan fan = new CinemaThread.Fan(id, tl);
+            fans.add(fan);
+            fan.setOnStatusChange(() -> atualizarStatusFans(fans));
             fan.setLogger(this::log);
             fan.start();
             log("Fã " + id + " criado com tempo de lanche " + tl + "s.");
+            atualizarStatusFans(fans);
         } catch (Exception e) {
             log("Erro ao criar fã: " + e.getMessage());
         }
+    }
+
+    private void atualizarStatusDemonstrador(CinemaThread.Demonstrador.Status status) {
+        Platform.runLater(() -> {
+            statusDemonstradorLabel.setText("Status do Demonstrador: " + status);
+            switch (status) {
+                case EXIBINDO_FILME:
+                    statusDemonstradorLabel.setStyle(
+                            "-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+                    break;
+                case AGUARDANDO_LOTACAO:
+                    statusDemonstradorLabel.setStyle(
+                            "-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-size: 16px; -fx-font-weight: bold;");
+                    break;
+            }
+        });
+    }
+
+    private void atualizarStatusFans(List<CinemaThread.Fan> fans) {
+        Platform.runLater(() -> {
+            fansStatusGrid.getChildren()
+                    .removeIf(node -> GridPane.getRowIndex(node) != null && GridPane.getRowIndex(node) > 0);
+
+            List<CinemaThread.Fan> naFila = new ArrayList<>();
+            List<CinemaThread.Fan> aguardando = new ArrayList<>();
+            List<CinemaThread.Fan> assistindo = new ArrayList<>();
+            List<CinemaThread.Fan> lanchando = new ArrayList<>();
+
+            for (CinemaThread.Fan fan : fans) {
+                switch (fan.getStatus()) {
+                    case NA_FILA:
+                        naFila.add(fan);
+                        break;
+                    case AGUARDANDO_INICIO:
+                        aguardando.add(fan);
+                        break;
+                    case ASSISTINDO:
+                        assistindo.add(fan);
+                        break;
+                    case LANCHANDO:
+                        lanchando.add(fan);
+                        break;
+                }
+            }
+
+            List<List<CinemaThread.Fan>> colunas = List.of(naFila, aguardando, assistindo, lanchando);
+            int maxRows = colunas.stream().mapToInt(List::size).max().orElse(0);
+            for (int row = 0; row < maxRows; row++) {
+                for (int col = 0; col < 4; col++) {
+                    if (colunas.get(col).size() > row) {
+                        CinemaThread.Fan fan = colunas.get(col).get(row);
+                        Label label = new Label(fan.getFanId() + " | tl: " + fan.getTl() + " | " + fan.getStatus());
+                        fansStatusGrid.add(label, col, row + 1);
+                    }
+                }
+            }
+        });
     }
 
     private void log(String msg) {

@@ -1,8 +1,10 @@
 package edu.ifce.thread;
 
 import java.util.concurrent.Semaphore;
+import java.util.function.Consumer;
 
 import edu.ifce.function.SleepUtil;
+import javafx.application.Platform;
 
 public class CinemaThread {
 
@@ -30,23 +32,19 @@ public class CinemaThread {
 
     public static class Fan extends Thread {
 
-        String id;
-        int tl; // tempo de lanche em segundos
+        private String id;
+        private int tl; // tempo de lanche em segundos
+        Consumer<String> logger = System.out::println; // padrão: console
+        private Runnable onStatusChange;
 
-        enum Status {
+        public enum Status {
             NA_FILA,
             AGUARDANDO_INICIO,
             ASSISTINDO,
             LANCHANDO
         }
 
-        Status status;
-
-        private java.util.function.Consumer<String> logger = System.out::println; // padrão: console
-
-        public void setLogger(java.util.function.Consumer<String> logger) {
-            this.logger = logger;
-        }
+        private Status status;
 
         public Fan(String id, int tl) {
             this.id = id;
@@ -54,11 +52,38 @@ public class CinemaThread {
             setDaemon(true);
         }
 
+        public String getFanId() {
+            return id;
+        }
+
+        public int getTl() {
+            return tl;
+        }
+
+        public Status getStatus() {
+            return status;
+        }
+
+        public void setLogger(java.util.function.Consumer<String> logger) {
+            this.logger = logger;
+        }
+
+        public void setOnStatusChange(Runnable callback) {
+            this.onStatusChange = callback;
+        }
+
+        private void updateStatus(Status newStatus) {
+            this.status = newStatus;
+            if (onStatusChange != null) {
+                Platform.runLater(onStatusChange);
+            }
+        }
+
         public void run() {
             try {
                 while (true) {
                     logger.accept("[" + id + "] Status: NA_FILA - Esperando para entrar no auditorio.");
-                    status = Status.NA_FILA;
+                    updateStatus(Status.NA_FILA);
                     entrada.acquire();
 
                     mutex.acquire();
@@ -66,6 +91,7 @@ public class CinemaThread {
                         presentes++;
                         logger.accept("[" + id + "] Status: AGUARDANDO_INICIO - Entrou no auditorio. Presentes: "
                                 + presentes);
+                        updateStatus(Status.AGUARDANDO_INICIO);
                         if (presentes == N) {
                             podeExibir.release();
                             logger.accept(">>> Auditorio lotado! Iniciando sessao...");
@@ -77,7 +103,7 @@ public class CinemaThread {
 
                     podeAssistir.acquire();
                     filmeIniciado.acquire(); // espera o demonstrador sinalizar início do filme
-                    status = Status.ASSISTINDO;
+                    updateStatus(Status.ASSISTINDO);
                     logger.accept("[" + id + "] Status: ASSISTINDO - Comecou a assistir ao filme");
                     SleepUtil.busySleep(te * 1000);
 
@@ -98,10 +124,10 @@ public class CinemaThread {
                     }
 
                     logger.accept("[" + id + "] Status: LANCHANDO - Foi lanchar.");
-                    status = Status.LANCHANDO;
+                    updateStatus(Status.LANCHANDO);
                     SleepUtil.busySleep(tl * 1000);
                     logger.accept("[" + id + "] Terminou de lanchar e voltou para a fila.");
-                    status = Status.NA_FILA;
+                    updateStatus(Status.NA_FILA);
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -113,12 +139,15 @@ public class CinemaThread {
 
         // int capacidade; // N: capacidade do auditório
         // int te; // Te: tempo de exibição do filme em segundos
-        enum Status {
+        private Consumer<Status> onStatusChange;
+        private Consumer<String> logger = System.out::println; // padrão: console
+
+        public enum Status {
             EXIBINDO_FILME,
             AGUARDANDO_LOTACAO
         }
 
-        Status status;
+        private Status status;
 
         public Demonstrador() {
             // this.capacidade = capacidade;
@@ -126,7 +155,20 @@ public class CinemaThread {
             setDaemon(true);
         }
 
-        private java.util.function.Consumer<String> logger = System.out::println; // padrão: console
+        public Status getStatus() {
+            return status;
+        }
+
+        public void setOnStatusChange(Consumer<Status> callback) {
+            this.onStatusChange = callback;
+        }
+
+        private void updateStatus(Status newStatus) {
+            this.status = newStatus;
+            if (onStatusChange != null) {
+                Platform.runLater(() -> onStatusChange.accept(newStatus));
+            }
+        }
 
         public void setLogger(java.util.function.Consumer<String> logger) {
             this.logger = logger;
@@ -135,15 +177,14 @@ public class CinemaThread {
         public void run() {
             try {
                 while (true) {
-                    status = Status.AGUARDANDO_LOTACAO;
+                    updateStatus(Status.AGUARDANDO_LOTACAO);
                     podeExibir.acquire();
                     logger.accept("[DEMONSTRADOR] Status: EXIBINDO_FILME - Exibindo filme!");
-                    status = Status.EXIBINDO_FILME;
+                    updateStatus(Status.EXIBINDO_FILME);
                     filmeIniciado.release(N); // libera para todos os fãs
                     SleepUtil.busySleep(te * 1000);
                     logger.accept("[DEMONSTRADOR] Filme acabou! Liberando fas para lanchar.");
-                    status = Status.AGUARDANDO_LOTACAO;
-
+                    updateStatus(Status.AGUARDANDO_LOTACAO);
                 }
             } catch (Exception e) {
                 e.printStackTrace();

@@ -8,35 +8,73 @@
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.RowConstraints?>
 
-<VBox alignment="TOP_CENTER" spacing="10.0" xmlns="http://javafx.com/javafx" xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.ifce.controller.PrimaryController">
-    <padding>
-        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-    </padding>
-    <children>
-        <Label text="Configurar Demonstrador" />
-        <HBox alignment="CENTER_LEFT" spacing="5.0">
+<VBox alignment="TOP_CENTER" spacing="10.0" xmlns="http://javafx.com/javafx"
+   xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.ifce.controller.PrimaryController">
+   <padding>
+      <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+   </padding>
+   <children>
+      <Label text="Configurar Demonstrador" />
+      <HBox alignment="CENTER_LEFT" spacing="5.0">
+         <children>
+            <Label text="Capacidade (N):" />
+            <TextField fx:id="capacidadeField" prefWidth="50.0" />
+            <Label text="Tempo Exibição (te):" />
+            <TextField fx:id="tempoExibicaoField" prefWidth="50.0" />
+            <Button fx:id="iniciarDemoBtn" onAction="#iniciarDemonstrador"
+               text="Iniciar Demonstrador" />
+         </children>
+      </HBox>
+      <Separator prefWidth="200.0" />
+      <Label text="Adicionar Fã" />
+      <HBox alignment="CENTER_LEFT" spacing="5.0">
+         <children>
+            <Label text="ID:" />
+            <TextField fx:id="fanIdField" prefWidth="80.0" />
+            <Label text="Tempo Lanche (tl):" />
+            <TextField fx:id="fanTempoLancheField" prefWidth="50.0" />
+            <Button fx:id="adicionarFanBtn" disable="true" onAction="#adicionarFan"
+               text="Adicionar Fã" />
+         </children>
+      </HBox>
+      <Separator prefWidth="200.0" />
+
+
+      <VBox spacing="10.0">
+
+         <Label fx:id="statusDemonstradorLabel" text="Status do Demonstrador" alignment="CENTER"
+            style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+
+         <GridPane fx:id="fansStatusGrid" hgap="20" vgap="5">
+            <columnConstraints>
+               <ColumnConstraints halignment="CENTER" />
+               <ColumnConstraints halignment="CENTER" />
+               <ColumnConstraints halignment="CENTER" />
+               <ColumnConstraints halignment="CENTER" />
+            </columnConstraints>
+            <rowConstraints>
+               <RowConstraints valignment="CENTER" />
+            </rowConstraints>
+
             <children>
-                <Label text="Capacidade (N):" />
-                <TextField fx:id="capacidadeField" prefWidth="50.0" />
-                <Label text="Tempo Exibição (te):" />
-                <TextField fx:id="tempoExibicaoField" prefWidth="50.0" />
-                <Button fx:id="iniciarDemoBtn" onAction="#iniciarDemonstrador" text="Iniciar Demonstrador" />
+               <Label text="Na Fila" GridPane.columnIndex="0" GridPane.rowIndex="0"
+                  style="-fx-font-weight: bold;" />
+               <Label text="Aguardando Início" GridPane.columnIndex="1" GridPane.rowIndex="0"
+                  style="-fx-font-weight: bold;" />
+               <Label text="Assistindo" GridPane.columnIndex="2" GridPane.rowIndex="0"
+                  style="-fx-font-weight: bold;" />
+               <Label text="Lanchando" GridPane.columnIndex="3" GridPane.rowIndex="0"
+                  style="-fx-font-weight: bold;" />
             </children>
-        </HBox>
-        <Separator prefWidth="200.0" />
-        <Label text="Adicionar Fã" />
-        <HBox alignment="CENTER_LEFT" spacing="5.0">
-            <children>
-                <Label text="ID:" />
-                <TextField fx:id="fanIdField" prefWidth="80.0" />
-                <Label text="Tempo Lanche (tl):" />
-                <TextField fx:id="fanTempoLancheField" prefWidth="50.0" />
-                <Button fx:id="adicionarFanBtn" disable="true" onAction="#adicionarFan" text="Adicionar Fã" />
-            </children>
-        </HBox>
-        <Separator prefWidth="200.0" />
-        <Label text="Log" />
-        <TextArea fx:id="logArea" editable="false" prefColumnCount="50" prefRowCount="15" />
-    </children>
+         </GridPane>
+      </VBox>
+
+      <Separator prefWidth="200.0" />
+      <Label text="Log" />
+      <TextArea fx:id="logArea" editable="false" prefColumnCount="50" prefRowCount="15" />
+   </children>
 </VBox>
