@@ -2,13 +2,18 @@ package edu.ifce.thread;
 
 import java.util.concurrent.Semaphore;
 
+import edu.ifce.function.SleepUtil;
+
 public class CinemaThread {
 
     static final int N = 3; // capacidade do auditório
+    static int te = 3; // tempo de exibicao
 
     static Semaphore entrada = new Semaphore(N); // controla entrada no auditório
-    static Semaphore podeExibir = new Semaphore(0);    // sinaliza para o demonstrador
-    static Semaphore podeLanchar = new Semaphore(0);   // libera fãs para lanchar
+    static Semaphore podeExibir = new Semaphore(0); // sinaliza para o demonstrador
+    static Semaphore podeAssistir = new Semaphore(0); // libera fãs para assistir
+    static Semaphore filmeIniciado = new Semaphore(0); // garante ordem dos prints
+    static Semaphore mutex = new Semaphore(1);
 
     static int presentes = 0; // fãs presentes no auditório
 
@@ -38,31 +43,44 @@ public class CinemaThread {
                     status = Status.NA_FILA;
                     entrada.acquire();
 
-                    synchronized (CinemaThread.class) {
+                    mutex.acquire();
+                    try {
                         presentes++;
-                        System.out.println("[" + id + "] Status: AGUARDANDO_INICIO - Entrou no auditorio. Presentes: " + presentes);
+                        System.out.println("[" + id + "] Status: AGUARDANDO_INICIO - Entrou no auditorio. Presentes: "
+                                + presentes);
                         if (presentes == N) {
-                            System.out.println(">>> Auditorio lotado! Iniciando sessao...");
-                            status = Status.ASSISTINDO;
                             podeExibir.release();
+                            System.out.println(">>> Auditorio lotado! Iniciando sessao...");
+                            podeAssistir.release(N);
                         }
+                    } finally {
+                        mutex.release();
                     }
 
-                    podeLanchar.acquire();
+                    podeAssistir.acquire();
+                    filmeIniciado.acquire(); // espera o demonstrador sinalizar início do filme
+                    System.out.println("[" + id + "] Status: ASSISTINDO - Comecou a assistir ao filme");
+                    SleepUtil.busySleep(te * 1000);
 
-                    synchronized (CinemaThread.class) {
+                    mutex.acquire();
+                    try {
                         presentes--;
-                        System.out.println("[" + id + "] Saiu do auditorio para lanchar. Presentes restantes: " + presentes);
+                        System.out.println(
+                                "[" + id + "] Saiu do auditorio para lanchar. Presentes restantes: " + presentes);
                         if (presentes == 0) {
-                            System.out.println(">>> Auditorio esvaziou! Liberando para proxima sessao.\n---------------------------");
-                            System.out.println("[DEMONSTRADOR] Status: AGUARDANDO_LOTACAO - Esperando auditorio lotar...");
+                            System.out.println(
+                                    ">>> Auditorio esvaziou! Liberando para proxima sessao.\n---------------------------");
+                            System.out.println(
+                                    "[DEMONSTRADOR] Status: AGUARDANDO_LOTACAO - Esperando auditorio lotar...");
                             entrada.release(N);
                         }
+                    } finally {
+                        mutex.release();
                     }
 
                     System.out.println("[" + id + "] Status: LANCHANDO - Foi lanchar.");
                     status = Status.LANCHANDO;
-                    Thread.sleep(tl * 1000);
+                    SleepUtil.busySleep(tl * 1000);
                     System.out.println("[" + id + "] Terminou de lanchar e voltou para a fila.");
                     status = Status.NA_FILA;
                 }
@@ -75,8 +93,7 @@ public class CinemaThread {
     public static class Demonstrador extends Thread {
 
         // int capacidade; // N: capacidade do auditório
-        int te; // Te: tempo de exibição do filme em segundos
-
+        // int te; // Te: tempo de exibição do filme em segundos
         enum Status {
             EXIBINDO_FILME,
             AGUARDANDO_LOTACAO
@@ -84,9 +101,9 @@ public class CinemaThread {
 
         Status status;
 
-        public Demonstrador(int te) {
+        public Demonstrador() {
             // this.capacidade = capacidade;
-            this.te = te;
+            // this.te = te;
         }
 
         public void run() {
@@ -94,12 +111,13 @@ public class CinemaThread {
                 while (true) {
                     status = Status.AGUARDANDO_LOTACAO;
                     podeExibir.acquire();
-                    status = Status.EXIBINDO_FILME;
                     System.out.println("[DEMONSTRADOR] Status: EXIBINDO_FILME - Exibindo filme!");
-                    Thread.sleep(te * 1000);
+                    status = Status.EXIBINDO_FILME;
+                    filmeIniciado.release(N); // libera para todos os fãs
+                    SleepUtil.busySleep(te * 1000);
                     System.out.println("[DEMONSTRADOR] Filme acabou! Liberando fas para lanchar.");
                     status = Status.AGUARDANDO_LOTACAO;
-                    podeLanchar.release(N);
+
                 }
             } catch (Exception e) {
                 e.printStackTrace();
@@ -108,17 +126,17 @@ public class CinemaThread {
     }
 
     public static void main(String[] args) {
-        Demonstrador demonstrador = new Demonstrador(3); // tempo de exibição = 3s
+        Demonstrador demonstrador = new Demonstrador();
         demonstrador.start();
 
         new Fan("Fan-" + 1, 1).start();
         new Fan("Fan-" + 2, 2).start();
-        new Fan("Fan-" + 3, 3).start();
-        new Fan("Fan-" + 4, 4).start();
-        new Fan("Fan-" + 5, 5).start();
-        new Fan("Fan-" + 6, 6).start();
-        new Fan("Fan-" + 7, 7).start();
-        new Fan("Fan-" + 8, 8).start();
+        // new Fan("Fan-" + 3, 3).start();
+        // new Fan("Fan-" + 4, 4).start();
+        // new Fan("Fan-" + 5, 5).start();
+        // new Fan("Fan-" + 6, 6).start();
+        // new Fan("Fan-" + 7, 7).start();
+        // new Fan("Fan-" + 8, 8).start();
         // new Fan("Fan-" + 9, 9).start();
         // new Fan("Fan-" + 10, 10).start();
         // new Fan("Fan-" + 11, 11).start();
