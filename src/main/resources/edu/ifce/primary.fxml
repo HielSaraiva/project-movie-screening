@@ -21,7 +21,7 @@
    </padding>
    <children>
       <Label text="Configurar Demonstrador" />
-      <HBox alignment="CENTER_LEFT" spacing="5.0">
+      <HBox alignment="CENTER" spacing="5.0">
          <children>
             <Label text="Capacidade (N):" />
             <TextField fx:id="capacidadeField" prefWidth="50.0" />
@@ -33,7 +33,7 @@
       </HBox>
       <Separator prefWidth="200.0" />
       <Label text="Adicionar Fã" />
-      <HBox alignment="CENTER_LEFT" spacing="5.0">
+      <HBox alignment="CENTER" spacing="5.0">
          <children>
             <Label text="ID:" />
             <TextField fx:id="fanIdField" prefWidth="80.0" />
@@ -48,15 +48,22 @@
 
       <VBox spacing="10.0">
 
-         <Label fx:id="statusDemonstradorLabel" text="Status do Demonstrador" alignment="CENTER"
-            style="-fx-font-size: 16px; -fx-font-weight: bold;" />
+         <HBox alignment="CENTER">
+            <children>
+               <Label fx:id="statusDemonstradorLabel" text="Status do Demonstrador" alignment="CENTER"
+                  style="-fx-font-size: 20px; -fx-font-weight: bold;" />
+            </children>
+         </HBox>
 
-         <GridPane fx:id="fansStatusGrid" hgap="20" vgap="5">
+         <GridPane fx:id="fansStatusGrid" hgap="20" vgap="5" maxWidth="Infinity">
+            <padding>
+               <Insets left="0" right="0" />
+            </padding>
             <columnConstraints>
-               <ColumnConstraints halignment="CENTER" />
-               <ColumnConstraints halignment="CENTER" />
-               <ColumnConstraints halignment="CENTER" />
-               <ColumnConstraints halignment="CENTER" />
+               <ColumnConstraints halignment="LEFT" hgrow="ALWAYS" />
+               <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" />
+               <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" />
+               <ColumnConstraints halignment="RIGHT" hgrow="ALWAYS" />
             </columnConstraints>
             <rowConstraints>
                <RowConstraints valignment="CENTER" />
@@ -90,6 +97,6 @@
             </Button>
          </children>
       </HBox>
-      <TextArea fx:id="logArea" editable="false" prefColumnCount="50" prefRowCount="15" />
+      <TextArea fx:id="logArea" editable="false" prefColumnCount="50" prefRowCount="15" VBox.vgrow="ALWAYS" />
    </children>
 </VBox>
