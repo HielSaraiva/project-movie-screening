@@ -11,6 +11,8 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.StackPane?>
 
 <VBox alignment="TOP_CENTER" spacing="10.0" xmlns="http://javafx.com/javafx"
    xmlns:fx="http://javafx.com/fxml/1" fx:controller="edu.ifce.controller.PrimaryController">
@@ -75,6 +77,19 @@
 
       <Separator prefWidth="200.0" />
       <Label text="Log" />
+      <HBox alignment="CENTER_LEFT" spacing="5.0">
+         <children>
+            <Button fx:id="toggleScrollBtn" onAction="#toggleScrollMode" focusTraversable="false"
+                    style="-fx-background-color: transparent; -fx-cursor: hand;">
+               <graphic>
+                  <Label fx:id="toggleScrollIcon" text="⤓" style="-fx-font-size: 18px;" />
+               </graphic>
+               <tooltip>
+                  <Tooltip text="Alternar rolagem automática do log" />
+               </tooltip>
+            </Button>
+         </children>
+      </HBox>
       <TextArea fx:id="logArea" editable="false" prefColumnCount="50" prefRowCount="15" />
    </children>
 </VBox>

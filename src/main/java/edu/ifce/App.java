@@ -13,15 +13,15 @@ import javafx.stage.Stage;
  */
 public class App extends Application {
 
+    // Variáveis de instância
     private static Scene scene;
 
-    @Override
-    public void start(Stage stage) throws IOException {
-        scene = new Scene(loadFXML("primary"), 640, 480);
-        stage.setScene(scene);
-        stage.show();
+    // Método principal
+    public static void main(String[] args) {
+        launch();
     }
 
+    // Métodos estáticos utilitários
     static void setRoot(String fxml) throws IOException {
         scene.setRoot(loadFXML(fxml));
     }
@@ -31,8 +31,11 @@ public class App extends Application {
         return fxmlLoader.load();
     }
 
-    public static void main(String[] args) {
-        launch();
+    // Sobrescrita do método start da Application
+    @Override
+    public void start(Stage stage) throws IOException {
+        scene = new Scene(loadFXML("primary"), 640, 480);
+        stage.setScene(scene);
+        stage.show();
     }
-
 }

@@ -13,7 +13,7 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 
 public class PrimaryController {
-
+    // --- FXML Components ---
     @FXML
     private TextField capacidadeField;
     @FXML
@@ -32,19 +32,26 @@ public class PrimaryController {
     private Label statusDemonstradorLabel;
     @FXML
     private GridPane fansStatusGrid;
+    @FXML
+    private Button toggleScrollBtn;
+    @FXML
+    private Label toggleScrollIcon;
 
+    // --- Control Variables ---
     private boolean demonstradorIniciado = false;
     private final List<CinemaThread.Fan> fans = new ArrayList<>();
     private CinemaThread.Demonstrador demonstrador;
+    private boolean autoScroll = true;
 
+    // --- Handlers ---
     @FXML
     private void iniciarDemonstrador() {
         try {
             int n = Integer.parseInt(capacidadeField.getText());
             int te = Integer.parseInt(tempoExibicaoField.getText());
             CinemaThread.configurar(n, te);
-            CinemaThread.Demonstrador demonstrador = new CinemaThread.Demonstrador();
-            demonstrador.setOnStatusChange(status -> atualizarStatusDemonstrador(status));
+            demonstrador = new CinemaThread.Demonstrador();
+            demonstrador.setOnStatusChange(this::atualizarStatusDemonstrador);
             demonstrador.setLogger(this::log);
             demonstrador.start();
             demonstradorIniciado = true;
@@ -76,6 +83,19 @@ public class PrimaryController {
         }
     }
 
+    @FXML
+    private void toggleScrollMode() {
+        autoScroll = !autoScroll;
+        if (autoScroll) {
+            toggleScrollIcon.setText("⤓"); // ícone para auto-scroll ativado
+            toggleScrollBtn.setTooltip(new javafx.scene.control.Tooltip("Rolagem automática ativada"));
+        } else {
+            toggleScrollIcon.setText("⤓✕"); // ícone alternativo para auto-scroll desativado
+            toggleScrollBtn.setTooltip(new javafx.scene.control.Tooltip("Rolagem automática desativada"));
+        }
+    }
+
+    // --- Atualização de Status ---
     private void atualizarStatusDemonstrador(CinemaThread.Demonstrador.Status status) {
         Platform.runLater(() -> {
             statusDemonstradorLabel.setText("Status do Demonstrador: " + status);
@@ -96,12 +116,10 @@ public class PrimaryController {
         Platform.runLater(() -> {
             fansStatusGrid.getChildren()
                     .removeIf(node -> GridPane.getRowIndex(node) != null && GridPane.getRowIndex(node) > 0);
-
             List<CinemaThread.Fan> naFila = new ArrayList<>();
             List<CinemaThread.Fan> aguardando = new ArrayList<>();
             List<CinemaThread.Fan> assistindo = new ArrayList<>();
             List<CinemaThread.Fan> lanchando = new ArrayList<>();
-
             for (CinemaThread.Fan fan : fans) {
                 switch (fan.getStatus()) {
                     case NA_FILA:
@@ -118,7 +136,6 @@ public class PrimaryController {
                         break;
                 }
             }
-
             List<List<CinemaThread.Fan>> colunas = List.of(naFila, aguardando, assistindo, lanchando);
             int maxRows = colunas.stream().mapToInt(List::size).max().orElse(0);
             for (int row = 0; row < maxRows; row++) {
@@ -133,7 +150,16 @@ public class PrimaryController {
         });
     }
 
+    // --- Logger ---
     private void log(String msg) {
-        Platform.runLater(() -> logArea.appendText(msg + "\n"));
+        Platform.runLater(() -> {
+            int caretPos = logArea.getCaretPosition();
+            logArea.appendText(msg + "\n");
+            if (autoScroll) {
+                logArea.positionCaret(logArea.getText().length());
+            } else {
+                logArea.positionCaret(caretPos);
+            }
+        });
     }
 }
