@@ -44,15 +44,19 @@ public class PrimaryController {
 
     // --- Control Variables ---
     private boolean demonstradorIniciado = false;
-    private final List<CinemaThread.Fan> fans = new ArrayList<>();
-    private CinemaThread.Demonstrador demonstrador;
+    private final List<CinemaThread.Fan> fans = new ArrayList<>();    private CinemaThread.Demonstrador demonstrador;
     private boolean autoScroll = true;
     private int tempoExibicaoFilme = 0; // tempo de exibição do filme
     // Controle de animação de processamento por fã
     private final java.util.Map<String, Timeline> fanProcessingBlinkers = new java.util.HashMap<>();
     private final java.util.Map<String, Label> fanLabels = new java.util.HashMap<>();
     private final java.util.Map<String, ImageView> fanImageViews = new java.util.HashMap<>();
-    private Timeline demonstradorBlinker;
+    private Timeline demonstradorBlinker;    // Controle do contador de tempo regressivo
+    private Timeline contadorRegressivo;
+    private double tempoRestanteSegundos = 0.0;
+    // Controle dos contadores de tempo regressivo dos fãs
+    private final java.util.Map<String, Timeline> fanContadores = new java.util.HashMap<>();
+    private final java.util.Map<String, Double> fanTemposRestantes = new java.util.HashMap<>();
 
     // --- Handlers ---
     @FXML
@@ -109,21 +113,126 @@ public class PrimaryController {
             toggleScrollBtn.setTooltip(new javafx.scene.control.Tooltip("Rolagem automática ativada"));
         } else {
             toggleScrollIcon.setText("⤓✕"); // ícone alternativo para auto-scroll desativado
-            toggleScrollBtn.setTooltip(new javafx.scene.control.Tooltip("Rolagem automática desativada"));
-        }
+            toggleScrollBtn.setTooltip(new javafx.scene.control.Tooltip("Rolagem automática desativada"));        }
     }
 
     // --- Atualização de Status ---
+    
+    private void iniciarContadorRegressivo() {
+        // Para o contador anterior se existir
+        if (contadorRegressivo != null) {
+            contadorRegressivo.stop();
+        }
+        
+        // Inicializa o tempo restante
+        tempoRestanteSegundos = tempoExibicaoFilme;
+        
+        // Cria o contador que atualiza a cada 100ms (0.1 segundos)
+        contadorRegressivo = new Timeline(
+            new KeyFrame(javafx.util.Duration.millis(100), e -> {
+                tempoRestanteSegundos -= 0.1;
+                if (tempoRestanteSegundos <= 0) {
+                    tempoRestanteSegundos = 0;
+                    contadorRegressivo.stop();
+                }
+                atualizarDisplayContador();
+            })
+        );
+        contadorRegressivo.setCycleCount(Timeline.INDEFINITE);
+        contadorRegressivo.play();
+    }
+      private void pararContadorRegressivo() {
+        if (contadorRegressivo != null) {
+            contadorRegressivo.stop();
+            contadorRegressivo = null;
+        }
+    }
+    
+    private void iniciarContadorFan(String fanId, int tempoLanche) {
+        // Para o contador anterior se existir
+        Timeline contadorAnterior = fanContadores.get(fanId);
+        if (contadorAnterior != null) {
+            contadorAnterior.stop();
+        }
+        
+        // Inicializa o tempo restante
+        double tempoRestante = tempoLanche;
+        fanTemposRestantes.put(fanId, tempoRestante);
+        
+        // Cria o contador que atualiza a cada 100ms (0.1 segundos)
+        Timeline contador = new Timeline(
+            new KeyFrame(javafx.util.Duration.millis(100), e -> {
+                double tempoAtual = fanTemposRestantes.get(fanId) - 0.1;
+                if (tempoAtual <= 0) {
+                    tempoAtual = 0;
+                    Timeline cont = fanContadores.get(fanId);
+                    if (cont != null) {
+                        cont.stop();
+                    }
+                }
+                fanTemposRestantes.put(fanId, tempoAtual);
+                atualizarDisplayContadorFan(fanId);
+            })
+        );
+        contador.setCycleCount(Timeline.INDEFINITE);
+        contador.play();
+        fanContadores.put(fanId, contador);
+    }
+    
+    private void pararContadorFan(String fanId) {
+        Timeline contador = fanContadores.get(fanId);
+        if (contador != null) {
+            contador.stop();
+            fanContadores.remove(fanId);
+        }
+        fanTemposRestantes.remove(fanId);
+    }
+    
+    private void atualizarDisplayContadorFan(String fanId) {
+        Platform.runLater(() -> {
+            Label label = fanLabels.get(fanId);
+            if (label != null) {
+                Double tempoRestante = fanTemposRestantes.get(fanId);
+                if (tempoRestante != null) {
+                    String tempoFormatado = String.format("%.1f", tempoRestante);
+                    // Busca o fã para obter informações completas
+                    CinemaThread.Fan fan = fans.stream()
+                        .filter(f -> f.getFanId().equals(fanId))
+                        .findFirst()
+                        .orElse(null);
+                    if (fan != null) {
+                        label.setText(fan.getFanId() + " | tl: " + fan.getTl() + " | " + 
+                                    fan.getStatus() + " - Tempo restante: " + tempoFormatado + "s");
+                    }
+                }
+            }
+        });
+    }
+      private void atualizarDisplayContador() {
+        Platform.runLater(() -> {
+            String tempoFormatado = String.format("%.1f", tempoRestanteSegundos);
+            statusDemonstradorLabel.setText("Status do Demonstrador: EXIBINDO_FILME - Tempo restante: " + tempoFormatado + "s");
+            // Mantém o estilo visual durante a exibição
+            if (!statusDemonstradorLabel.getStyle().contains("-fx-background-color")) {
+                statusDemonstradorLabel.setStyle(
+                    "-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;"
+                );
+            }
+        });
+    }
+    
     private void atualizarStatusDemonstrador(CinemaThread.Demonstrador.Status status) {
         Platform.runLater(() -> {
             statusDemonstradorLabel.setText("Status do Demonstrador: " + status);
             if (demonstradorBlinker != null) {
-                demonstradorBlinker.stop();
-                demonstradorBlinker = null;
+                demonstradorBlinker.stop();                demonstradorBlinker = null;
                 statusDemonstradorLabel.setStyle("");
             }
             switch (status) {
                 case EXIBINDO_FILME:
+                    // Inicia o contador regressivo
+                    iniciarContadorRegressivo();
+                    
                     statusDemonstradorLabel.setStyle(
                             "-fx-background-color: #4caf50; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;");
                     // Efeito de piscar em verde durante o tempo de exibição
@@ -155,6 +264,10 @@ public class PrimaryController {
                     demonstradorBlinker.play();
                     break;
                 case AGUARDANDO_LOTACAO:
+                    // Para o contador regressivo
+                    pararContadorRegressivo();
+                    
+                    statusDemonstradorLabel.setText("Status do Demonstrador: " + status);
                     statusDemonstradorLabel.setStyle(
                             "-fx-background-color: #ff9800; -fx-text-fill: white; -fx-font-size: 20px; -fx-font-weight: bold;");
                     break;
@@ -202,9 +315,27 @@ public class PrimaryController {
                 for (int col = 0; col < 4; col++) {
                     if (colunas.get(col).size() > row) {
                         CinemaThread.Fan fan = colunas.get(col).get(row);
-                        
-                        // Cria o label com o texto do fã
-                        Label label = new Label(fan.getFanId() + " | tl: " + fan.getTl() + " | " + fan.getStatus());
+                          // Cria o label com o texto do fã
+                        Label label;
+                        if (fan.getStatus() == CinemaThread.Fan.Status.LANCHANDO) {
+                            // Para fãs lanchando, inicia o contador se ainda não existir
+                            if (!fanContadores.containsKey(fan.getFanId())) {
+                                iniciarContadorFan(fan.getFanId(), fan.getTl());
+                            }
+                            // Exibe com contador regressivo
+                            Double tempoRestante = fanTemposRestantes.get(fan.getFanId());
+                            if (tempoRestante != null) {
+                                String tempoFormatado = String.format("%.1f", tempoRestante);
+                                label = new Label(fan.getFanId() + " | tl: " + fan.getTl() + " | " + 
+                                                fan.getStatus() + " - Tempo restante: " + tempoFormatado + "s");
+                            } else {
+                                label = new Label(fan.getFanId() + " | tl: " + fan.getTl() + " | " + fan.getStatus());
+                            }
+                        } else {
+                            // Para outros status, para o contador se existir
+                            pararContadorFan(fan.getFanId());
+                            label = new Label(fan.getFanId() + " | tl: " + fan.getTl() + " | " + fan.getStatus());
+                        }
                         
                         // Todos os fãs terão uma imagem ao lado do texto
                         HBox fanBox = new HBox(5); // 5px de espaço entre os elementos

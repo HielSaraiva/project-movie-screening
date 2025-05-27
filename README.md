@@ -56,6 +56,7 @@ project-movie-screening/
 - **Controle de Acesso Concorrente**: Implementação de semáforos para evitar que dois clientes reservem o mesmo assento simultaneamente
 - **Demonstração Visual de Processos**: Visualização em tempo real da execução de threads e operações de semáforo
 - **Estatísticas de Desempenho**: Métricas sobre tempo de espera, utilização de recursos e possíveis deadlocks
+- **Contador de Tempo Regressivo**: Indica o tempo restante para o início da sessão do filme
 
 ## Executando as Aplicações
 
@@ -135,3 +136,51 @@ O código foi estruturado para facilitar o entendimento desses conceitos, utiliz
 ---
 
 Desenvolvido como projeto para a disciplina de Sistemas Operacionais - IFCE 2025.1
+
+## Nova Funcionalidade: Contadores de Tempo Regressivo
+
+O sistema agora inclui contadores de tempo regressivo tanto para o demonstrador quanto para os fãs.
+
+### 🎬 Contador do Demonstrador:
+
+- **Precisão de décimos de segundo**: O contador atualiza a cada 0.1 segundos (100ms)
+- **Formato de exibição**: Mostra o tempo no formato "X.X" segundos (ex: "15.3s")
+- **Inicialização automática**: Inicia automaticamente quando o demonstrador muda para o status EXIBINDO_FILME
+- **Parada automática**: Para automaticamente quando o demonstrador volta para AGUARDANDO_LOTACAO
+
+### 🍿 Contador dos Fãs (Tempo de Lanche):
+
+- **Precisão de décimos de segundo**: Atualiza a cada 0.1 segundos (100ms)
+- **Formato de exibição**: Mostra o tempo restante de lanche no formato "X.X" segundos
+- **Inicialização automática**: Inicia quando o fã muda para status LANCHANDO
+- **Parada automática**: Para quando o fã sai do status LANCHANDO
+- **Exibição no label**: Aparece como "Fan1 | tl: 5 | LANCHANDO - Tempo restante: 4.7s"
+
+### Como funciona:
+
+1. **Para o Demonstrador**:
+   - Configure a capacidade do cinema e o tempo de exibição do filme
+   - Clique em "Iniciar Demonstrador"
+   - Quando o status mudar para "EXIBINDO_FILME", o contador aparecerá:
+     ```
+     Status do Demonstrador: EXIBINDO_FILME - Tempo restante: 15.3s
+     ```
+
+2. **Para os Fãs**:
+   - Adicione fãs com seus respectivos tempos de lanche
+   - Quando um fã mudar para status "LANCHANDO", o contador aparecerá:
+     ```
+     Fan1 | tl: 5 | LANCHANDO - Tempo restante: 4.7s
+     ```
+   - O contador decrementará de 0.1 em 0.1 segundos até chegar a zero
+
+### Implementação Técnica:
+
+**Demonstrador:**
+- Usa `Timeline` do JavaFX com `KeyFrame` de 100ms
+- Métodos: `iniciarContadorRegressivo()`, `pararContadorRegressivo()`, `atualizarDisplayContador()`
+
+**Fãs:**
+- Usa `Map<String, Timeline>` para gerenciar múltiplos contadores simultâneos
+- Métodos: `iniciarContadorFan()`, `pararContadorFan()`, `atualizarDisplayContadorFan()`
+- Integrado ao método `atualizarStatusFans()` para iniciar/parar automaticamente
