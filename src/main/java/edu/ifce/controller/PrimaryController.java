@@ -12,7 +12,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.layout.HBox;
 
 public class PrimaryController {
     // --- FXML Components ---
@@ -48,6 +51,7 @@ public class PrimaryController {
     // Controle de animação de processamento por fã
     private final java.util.Map<String, Timeline> fanProcessingBlinkers = new java.util.HashMap<>();
     private final java.util.Map<String, Label> fanLabels = new java.util.HashMap<>();
+    private final java.util.Map<String, ImageView> fanImageViews = new java.util.HashMap<>();
     private Timeline demonstradorBlinker;
 
     // --- Handlers ---
@@ -163,6 +167,7 @@ public class PrimaryController {
             fansStatusGrid.getChildren()
                     .removeIf(node -> GridPane.getRowIndex(node) != null && GridPane.getRowIndex(node) > 0);
             fanLabels.clear();
+            fanImageViews.clear();
             List<CinemaThread.Fan> naFila = new ArrayList<>();
             List<CinemaThread.Fan> aguardando = new ArrayList<>();
             List<CinemaThread.Fan> assistindo = new ArrayList<>();
@@ -185,18 +190,80 @@ public class PrimaryController {
             }
             List<List<CinemaThread.Fan>> colunas = List.of(naFila, aguardando, assistindo, lanchando);
             int maxRows = colunas.stream().mapToInt(List::size).max().orElse(0);
+            
+            // Carrega as imagens (apenas uma vez)
+            Image fanFilaImage = new Image(getClass().getResourceAsStream("/imgs/fila.png"));
+            Image aguardandoImage = new Image(getClass().getResourceAsStream("/imgs/cinema1.png"));
+            Image assistindoImage = new Image(getClass().getResourceAsStream("/imgs/cinema2.png"));
+            Image comendoImage = new Image(getClass().getResourceAsStream("/imgs/comendo2.png"));
+            Image comendoBaseImage = new Image(getClass().getResourceAsStream("/imgs/comendo1.png"));
+            
             for (int row = 0; row < maxRows; row++) {
                 for (int col = 0; col < 4; col++) {
                     if (colunas.get(col).size() > row) {
                         CinemaThread.Fan fan = colunas.get(col).get(row);
+                        
+                        // Cria o label com o texto do fã
                         Label label = new Label(fan.getFanId() + " | tl: " + fan.getTl() + " | " + fan.getStatus());
-                        fansStatusGrid.add(label, col, row + 1);
+                        
+                        // Todos os fãs terão uma imagem ao lado do texto
+                        HBox fanBox = new HBox(5); // 5px de espaço entre os elementos
+                        fanBox.setMaxWidth(Double.MAX_VALUE); // Permite que o HBox ocupe toda a largura disponível
+                        
+                        // Adiciona o texto
+                        fanBox.getChildren().add(label);
+                        
+                        // Configura o alinhamento do HBox de acordo com a coluna
+                        switch (col) {
+                            case 0: // NA_FILA - alinhamento à esquerda
+                                fanBox.setAlignment(javafx.geometry.Pos.CENTER_LEFT);
+                                break;
+                            case 1: // AGUARDANDO_INICIO - alinhamento ao centro
+                            case 2: // ASSISTINDO - alinhamento ao centro
+                                fanBox.setAlignment(javafx.geometry.Pos.CENTER);
+                                break;
+                            default: // LANCHANDO (col = 3) - alinhamento à direita
+                                fanBox.setAlignment(javafx.geometry.Pos.CENTER_RIGHT);
+                                break;
+                        }
+                        
+                        // Cria e configura a imagem dependendo do status
+                        ImageView imageView;
+                        switch (col) {
+                            case 0: // NA_FILA
+                                imageView = new ImageView(fanFilaImage);
+                                break;
+                            case 1: // AGUARDANDO_INICIO
+                                imageView = new ImageView(aguardandoImage);
+                                break;
+                            case 2: // ASSISTINDO
+                                imageView = new ImageView(assistindoImage);
+                                // Guarda a referência da ImageView para poder mudar a imagem durante o blink
+                                fanImageViews.put(fan.getFanId(), imageView);
+                                break;
+                            default: // LANCHANDO (col = 3)
+                                imageView = new ImageView(comendoImage);
+                                // Guarda a referência da ImageView para poder mudar a imagem durante o blink
+                                fanImageViews.put(fan.getFanId(), imageView);
+                                break;
+                        }
+                        
+                        imageView.setFitHeight(48);
+                        imageView.setFitWidth(48);
+                        imageView.setPreserveRatio(true);
+                        
+                        // Adiciona a imagem depois do texto
+                        fanBox.getChildren().add(imageView);
+                        
+                        // Adiciona o HBox ao GridPane
+                        fansStatusGrid.add(fanBox, col, row + 1);
+                        
                         fanLabels.put(fan.getFanId(), label);
                     }
                 }
             }
-            // Efeito de processamento: piscar 10 vezes em verde (ASSISTINDO) ou laranja
-            // (LANCHANDO)
+            
+            // Efeito de processamento: piscar 10 vezes em verde (ASSISTINDO) ou laranja (LANCHANDO)
             for (CinemaThread.Fan fan : fans) {
                 Label label = fanLabels.get(fan.getFanId());
                 Timeline blinker = fanProcessingBlinkers.get(fan.getFanId());
@@ -222,16 +289,78 @@ public class PrimaryController {
                     }
                     Timeline novoBlinker = new Timeline();
                     for (int i = 0; i < ciclos * 2; i++) {
-                        boolean on = i % 2 == 0;
+                        final boolean on = i % 2 == 0;
                         novoBlinker.getKeyFrames().add(
                                 new KeyFrame(javafx.util.Duration.seconds(i * duracao / 2),
-                                        e -> label.setStyle("-fx-text-fill: " + (on ? corOn : corOff)
-                                                + "; -fx-font-weight: bold;")));
+                                        e -> {
+                                            // Altera cor do texto
+                                            label.setStyle("-fx-text-fill: " + (on ? corOn : corOff)
+                                                    + "; -fx-font-weight: bold;");
+                                            
+                                            // Se estiver assistindo, alterna a imagem
+                                            if (fan.getStatus() == CinemaThread.Fan.Status.ASSISTINDO) {
+                                                ImageView imageView = fanImageViews.get(fan.getFanId());
+                                                if (imageView != null) {
+                                                    if (on) {
+                                                        // Texto verde = cinema2.png (assistindo)
+                                                        imageView.setImage(assistindoImage);
+                                                    } else {
+                                                        // Texto preto = cinema1.png (aguardando)
+                                                        imageView.setImage(aguardandoImage);
+                                                    }
+                                                }
+                                            }
+                                            // Se estiver lanchando, alterna a imagem
+                                            else if (fan.getStatus() == CinemaThread.Fan.Status.LANCHANDO) {
+                                                ImageView imageView = fanImageViews.get(fan.getFanId());
+                                                if (imageView != null) {
+                                                    if (on) {
+                                                        // Texto laranja = comendo2.png
+                                                        imageView.setImage(comendoImage);
+                                                    } else {
+                                                        // Texto preto = comendo1.png
+                                                        imageView.setImage(comendoBaseImage);
+                                                    }
+                                                }
+                                            }
+                                        }));
+                        novoBlinker.getKeyFrames().add(
+                                new KeyFrame(javafx.util.Duration.seconds(i * duracao / 2),
+                                        e -> {
+                                            // Altera cor do texto
+                                            label.setStyle("-fx-text-fill: " + (on ? corOn : corOff)
+                                                    + "; -fx-font-weight: bold;");
+                                            
+                                            // Se estiver assistindo, alterna a imagem
+                                            if (fan.getStatus() == CinemaThread.Fan.Status.ASSISTINDO) {
+                                                ImageView imageView = fanImageViews.get(fan.getFanId());
+                                                if (imageView != null) {
+                                                    if (on) {
+                                                        // Texto verde = cinema2.png (assistindo)
+                                                        imageView.setImage(assistindoImage);
+                                                    } else {
+                                                        // Texto preto = cinema1.png (aguardando)
+                                                        imageView.setImage(aguardandoImage);
+                                                    }
+                                                }
+                                            }
+                                        }));
                     }
                     // Ao terminar, volta ao normal
                     novoBlinker.getKeyFrames().add(
                             new KeyFrame(javafx.util.Duration.seconds(duracao * ciclos),
-                                    e -> label.setStyle("")));
+                                    e -> {
+                                        label.setStyle("");
+                                        // Restaura a imagem padrão conforme o status
+                                        ImageView imageView = fanImageViews.get(fan.getFanId());
+                                        if (imageView != null) {
+                                            if (fan.getStatus() == CinemaThread.Fan.Status.ASSISTINDO) {
+                                                imageView.setImage(assistindoImage);
+                                            } else if (fan.getStatus() == CinemaThread.Fan.Status.LANCHANDO) {
+                                                imageView.setImage(comendoImage);
+                                            }
+                                        }
+                                    }));
                     novoBlinker.setCycleCount(1);
                     novoBlinker.play();
                     fanProcessingBlinkers.put(fan.getFanId(), novoBlinker);
