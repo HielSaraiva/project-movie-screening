@@ -184,3 +184,150 @@ O sistema agora inclui contadores de tempo regressivo tanto para o demonstrador 
 - Usa `Map<String, Timeline>` para gerenciar múltiplos contadores simultâneos
 - Métodos: `iniciarContadorFan()`, `pararContadorFan()`, `atualizarDisplayContadorFan()`
 - Integrado ao método `atualizarStatusFans()` para iniciar/parar automaticamente
+
+## ⚽ Funcionalidade Especial: Fã Vojvoda
+
+O sistema possui uma funcionalidade especial para fãs com o nome "Vojvoda" (detecção case-insensitive).
+
+### 🎵 Som Especial:
+
+- **Detecção automática**: Quando um fã com o nome "Vojvoda" (em qualquer combinação de maiúsculas/minúsculas) é criado
+- **Reprodução de áudio**: Automaticamente reproduz o som `vojvoda.mp3` localizado em `/audios/`
+- **Tratamento de erros**: Caso o arquivo de áudio não seja encontrado, exibe erro no console mas não interrompe a aplicação
+
+### 🖼️ Imagem Especial:
+
+- **Imagem única**: O fã Vojvoda usa a imagem especial `Vojvoda.png` localizada em `/imgs/`
+- **Todas as colunas**: A imagem especial é usada em todas as 4 colunas (NA_FILA, AGUARDANDO_INICIO, ASSISTINDO, LANCHANDO)
+- **Efeitos visuais preservados**: Durante os efeitos de piscar (ASSISTINDO/LANCHANDO), o Vojvoda mantém sua imagem especial
+- **Substituição completa**: Substitui todas as imagens padrão (fila.png, cinema1.png, cinema2.png, comendo1.png, comendo2.png)
+
+### Como usar:
+
+1. **Crie um fã com nome "Vojvoda"**:
+   - Digite "Vojvoda", "vojvoda", "VOJVODA" ou qualquer combinação no campo de ID do fã
+   - Configure o tempo de lanche normalmente
+   - Clique em "Adicionar Fã"
+
+2. **Observe os efeitos especiais**:
+   - ✅ Som especial tocará automaticamente na criação
+   - ✅ Imagem especial aparecerá em todas as colunas
+   - ✅ Contadores de tempo funcionam normalmente
+   - ✅ Efeitos visuais de piscar preservam a imagem especial
+
+## 🎭 Funcionalidade Especial: Fã Kanal
+
+O sistema possui uma funcionalidade especial para fãs com o nome "Kanal" (detecção case-insensitive).
+
+### 🎵 Som Especial:
+
+- **Detecção automática**: Quando um fã com o nome "Kanal" (em qualquer combinação de maiúsculas/minúsculas) é criado
+- **Reprodução de áudio**: Automaticamente reproduz o som `kanal.mp3` localizado em `/audios/`
+- **Tratamento de erros**: Caso o arquivo de áudio não seja encontrado, exibe erro no console mas não interrompe a aplicação
+
+### 🖼️ Imagem Especial:
+
+- **Imagem única**: O fã Kanal usa a imagem especial `kanal.png` localizada em `/imgs/`
+- **Todas as colunas**: A imagem especial é usada em todas as 4 colunas (NA_FILA, AGUARDANDO_INICIO, ASSISTINDO, LANCHANDO)
+- **Efeitos visuais preservados**: Durante os efeitos de piscar (ASSISTINDO/LANCHANDO), o Kanal mantém sua imagem especial
+- **Substituição completa**: Substitui todas as imagens padrão (fila.png, cinema1.png, cinema2.png, comendo1.png, comendo2.png)
+
+### Como usar:
+
+1. **Crie um fã com nome "Kanal"**:
+   - Digite "Kanal", "kanal", "KANAL" ou qualquer combinação no campo de ID do fã
+   - Configure o tempo de lanche normalmente
+   - Clique em "Adicionar Fã"
+
+2. **Observe os efeitos especiais**:
+   - ✅ Som especial tocará automaticamente na criação
+   - ✅ Imagem especial aparecerá em todas as colunas
+   - ✅ Contadores de tempo funcionam normalmente
+   - ✅ Efeitos visuais de piscar preservam a imagem especial
+
+## 🏆 Funcionalidade Especial: Fãs Fortaleza e Laion
+
+O sistema possui uma funcionalidade especial para fãs com os nomes "Fortaleza" ou "Laion" (detecção case-insensitive).
+
+### 🎵 Som Especial:
+
+- **Detecção automática**: Quando um fã com o nome "Fortaleza" ou "Laion" (em qualquer combinação de maiúsculas/minúsculas) é criado
+- **Reprodução de áudio**: Automaticamente reproduz o som `fortaleza-verdinha.mp3` localizado em `/audios/`
+- **Tratamento de erros**: Caso o arquivo de áudio não seja encontrado, exibe erro no console mas não interrompe a aplicação
+- **Gerenciamento de recursos**: O sistema limpa automaticamente outros players de áudio para evitar conflitos
+
+### 🖼️ Imagem Especial:
+
+- **Imagem única**: Os fãs Fortaleza/Laion usam a imagem especial `laion.png` localizada em `/imgs/`
+- **Todas as colunas**: A imagem especial é usada em todas as 4 colunas (NA_FILA, AGUARDANDO_INICIO, ASSISTINDO, LANCHANDO)
+- **Efeitos visuais preservados**: Durante os efeitos de piscar (ASSISTINDO/LANCHANDO), Fortaleza/Laion mantém sua imagem especial
+- **Substituição completa**: Substitui todas as imagens padrão (fila.png, cinema1.png, cinema2.png, comendo1.png, comendo2.png)
+
+### Como usar:
+
+1. **Crie um fã com nome "Fortaleza" ou "Laion"**:
+   - Digite "Fortaleza", "fortaleza", "FORTALEZA", "Laion", "laion", "LAION" ou qualquer combinação no campo de ID do fã
+   - Configure o tempo de lanche normalmente
+   - Clique em "Adicionar Fã"
+
+2. **Observe os efeitos especiais**:
+   - ✅ Som especial tocará automaticamente na criação (fortaleza-verdinha.mp3)
+   - ✅ Imagem especial aparecerá em todas as colunas (laion.png)
+   - ✅ Contadores de tempo funcionam normalmente
+   - ✅ Efeitos visuais de piscar preservam a imagem especial
+   - ✅ Sistema limpa automaticamente outros recursos de áudio
+
+### Implementação Técnica:
+
+**Detecção dos nomes:**
+```java
+// Vojvoda
+if (id.toLowerCase().equals("vojvoda")) {
+    tocarSomVojvoda();
+}
+
+// Kanal
+if (id.toLowerCase().equals("kanal")) {
+    tocarSomKanal();
+}
+
+// Fortaleza/Laion
+if (id.toLowerCase().equals("fortaleza") || id.toLowerCase().equals("laion")) {
+    tocarSomFortaleza();
+}
+```
+
+**Reprodução de áudio:**
+```java
+// Vojvoda
+Media som = new Media(getClass().getResource("/audios/vojvoda.mp3").toExternalForm());
+MediaPlayer player = new MediaPlayer(som);
+player.play();
+
+// Kanal
+Media som = new Media(getClass().getResource("/audios/kanal.mp3").toExternalForm());
+MediaPlayer player = new MediaPlayer(som);
+player.play();
+
+// Fortaleza/Laion
+Media som = new Media(getClass().getResource("/audios/fortaleza-verdinha.mp3").toExternalForm());
+MediaPlayer player = new MediaPlayer(som);
+player.play();
+```
+
+**Seleção de imagem:**
+```java
+boolean isVojvoda = fan.getFanId().toLowerCase().equals("vojvoda");
+boolean isKanal = fan.getFanId().toLowerCase().equals("kanal");
+boolean isFortalezaOrLaion = fan.getFanId().toLowerCase().equals("fortaleza") || fan.getFanId().toLowerCase().equals("laion");
+
+if (isVojvoda) {
+    imageView = new ImageView(vojvodaImage);
+} else if (isKanal) {
+    imageView = new ImageView(kanalImage);
+} else if (isFortalezaOrLaion) {
+    imageView = new ImageView(laionImage);
+} else {
+    // lógica normal para outros fãs
+}
+```

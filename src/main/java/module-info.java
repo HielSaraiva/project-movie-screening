@@ -2,6 +2,7 @@ module edu.ifce {
     requires javafx.controls;
     requires javafx.fxml;
     requires javafx.graphics;
+    requires javafx.media;
 
     opens edu.ifce.controller to javafx.fxml;
 
