@@ -135,8 +135,6 @@ Se quiser rodar o `.jar` diretamente (fora do Maven), use o comando abaixo:
 ## Distribuição Rápida (Pasta dist)
 
 Para facilitar a execução, o projeto já inclui:
-- O **JDK do Java**
-- O **SDK do JavaFX**
 - O arquivo **.jar** pronto para uso
 
 todos dentro da pasta `dist`.
