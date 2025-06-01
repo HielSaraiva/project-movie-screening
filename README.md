@@ -164,6 +164,20 @@ java --module-path "$env:PATH_TO_FX" --add-modules javafx.controls,javafx.fxml,j
 - Fã **Kanal**: som e imagem especial
 - Fã **Fortaleza/Laion**: som e imagem especial
 
+## Imagens
+
+### Tela inicial
+
+<img src="/src/assets/imgs/Tela inicial.png" alt="Tela inicial" style="width: 600px;">
+
+### Exemplo
+
+<img src="/src/assets/imgs/exemplo1.png" alt="Tela inicial" style="width: 600px;">
+
+### Exemplo funcionando
+
+<img src="src/assets/gif/exemplo_funcionando2.gif" alt="Tela inicial" style="width: 600px;">
+
 ## Considerações Finais
 Este projeto demonstra conceitos de sincronização, controle de recursos compartilhados, prevenção de deadlocks e interface gráfica com JavaFX.
 
