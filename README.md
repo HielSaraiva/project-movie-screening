@@ -176,7 +176,7 @@ java --module-path "$env:PATH_TO_FX" --add-modules javafx.controls,javafx.fxml,j
 
 ### Exemplo funcionando
 
-<img src="src/assets/gif/exemplo_funcionando2.gif" alt="Tela inicial" style="width: 600px;">
+<img src="src/assets/gif/exemplo_funcionando.gif" alt="Tela inicial" style="width: 600px;">
 
 ## Considerações Finais
 Este projeto demonstra conceitos de sincronização, controle de recursos compartilhados, prevenção de deadlocks e interface gráfica com JavaFX.
